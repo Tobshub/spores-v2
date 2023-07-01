@@ -31,6 +31,7 @@ impl<'a> Request<'a> {
         } else {
             response = format!("{status_line}\r\n\r\n");
         }
-        return stream.write_all(response.as_bytes()).unwrap();
+        stream.write_all(response.as_bytes()).unwrap();
+        stream.flush().unwrap();
     }
 }
