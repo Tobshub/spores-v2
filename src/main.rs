@@ -34,12 +34,15 @@ fn handle_connection(stream: TcpStream) {
     println!("{:?}", request);
 
     let (status_line, content): Response = match (&request.method[..], &request.path[..]) {
-        ("GET", "/hello") => {
-            sleep(time::Duration::from_secs(10));
-            ("HTTP/1.1 200 OK", Some(String::from("Hello world")))
+        ("GET", "/sleep") => {
+            sleep(time::Duration::from_secs(5));
+            (
+                "HTTP/1.1 200 OK",
+                Some(String::from("Responded after 5 seconds")),
+            )
         }
         ("GET", "/") => ("HTTP/1.1 200 OK", read_file("index.html")),
-        _ => ("HTTP/1.1 404 NOT FOUND", None),
+        _ => ("HTTP/1.1 404 NOT FOUND", read_file("404.html")),
     };
 
     if content.is_some() {
