@@ -1,20 +1,30 @@
+use core::time;
 use std::{
     fs,
     io::{prelude::*, BufReader},
     net::{TcpListener, TcpStream},
     path::Path,
+    thread::sleep,
 };
 
 mod http;
 use crate::http::{Request, Response};
 
+mod thread_pool;
+
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:4000").unwrap();
+    println!("Listening on port 4000...");
+    let pool = thread_pool::ThreadPool::new(4);
 
-    for stream in listener.incoming() {
+    for stream in listener.incoming().take(2) {
         let stream = stream.unwrap();
-        handle_connection(stream);
+        pool.execute(|| {
+            handle_connection(stream);
+        })
     }
+
+    println!("Shutting down.");
 }
 
 fn handle_connection(stream: TcpStream) {
@@ -24,7 +34,10 @@ fn handle_connection(stream: TcpStream) {
     println!("{:?}", request);
 
     let (status_line, content): Response = match (&request.method[..], &request.path[..]) {
-        ("GET", "/hello") => ("HTTP/1.1 200 OK", Some(String::from("Hello world"))),
+        ("GET", "/hello") => {
+            sleep(time::Duration::from_secs(10));
+            ("HTTP/1.1 200 OK", Some(String::from("Hello world")))
+        }
         ("GET", "/") => ("HTTP/1.1 200 OK", read_file("index.html")),
         _ => ("HTTP/1.1 404 NOT FOUND", None),
     };
