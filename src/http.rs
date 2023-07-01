@@ -19,6 +19,7 @@ impl<'a> Request<'a> {
     }
 
     pub fn end(self, mut stream: &TcpStream, status_line: &'a str, content: Option<String>) {
+        println!("{} {}, {status_line}", self.method, self.path);
         let response;
         if content.is_some() {
             let content = content.unwrap();
